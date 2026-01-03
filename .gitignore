@@ -12,3 +12,5 @@ archive/
 
 # files
 *.mp4
+data/*.parquet
+data/*.joblib

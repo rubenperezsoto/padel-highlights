@@ -1,0 +1,66 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/ruben/padel-tracker/padel-highlights/src/padel/pipelines/run_tracknet_demo.py", line 38, in <module>
+    main()
+  File "/Users/ruben/padel-tracker/padel-highlights/src/padel/pipelines/run_tracknet_demo.py", line 28, in main
+    for det in handler.run_on_video(args.video):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ruben/padel-tracker/padel-highlights/src/padel/tracking/trackvnet_handler.py", line 132, in run_on_video
+    detections = self.predict_triplet(
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ruben/padel-tracker/padel-highlights/src/padel/tracking/trackvnet_handler.py", line 89, in predict_triplet
+    preds = self.model(tensor)[0].detach().cpu().numpy()
+            ^^^^^^^^^^^^^^^^^^
+  File "/Users/ruben/padel-tracker/venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ruben/padel-tracker/venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ruben/padel-tracker/TrackNetV2-pytorch/models/tracknet.py", line 107, in forward
+    x = self.conv2d_16(x)
+        ^^^^^^^^^^^^^^^^^
+  File "/Users/ruben/padel-tracker/venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ruben/padel-tracker/venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ruben/padel-tracker/TrackNetV2-pytorch/models/tracknet.py", line 16, in forward
+    x = self.act(self.conv(x))
+                 ^^^^^^^^^^^^
+  File "/Users/ruben/padel-tracker/venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ruben/padel-tracker/venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ruben/padel-tracker/venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 548, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ruben/padel-tracker/venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 543, in _conv_forward
+    return F.conv2d(
+           ^^^^^^^^^
+KeyboardInterrupt
+frame=0 visible=True x=255 y=18
+frame=1 visible=True x=258 y=18
+frame=2 visible=True x=258 y=15
+frame=1 visible=False x=0 y=0
+frame=2 visible=True x=112 y=26
+frame=3 visible=True x=116 y=22
+frame=2 visible=True x=1068 y=960
+frame=3 visible=True x=112 y=22
+frame=4 visible=True x=112 y=22
+frame=3 visible=True x=255 y=18
+frame=4 visible=True x=112 y=22
+frame=5 visible=True x=108 y=22
+frame=4 visible=True x=262 y=22
+frame=5 visible=True x=112 y=22
+frame=6 visible=True x=112 y=22
+frame=5 visible=True x=997 y=960
+frame=6 visible=True x=997 y=855
+frame=7 visible=False x=0 y=0
+frame=6 visible=True x=255 y=18
+frame=7 visible=True x=258 y=18
+frame=8 visible=True x=255 y=18
