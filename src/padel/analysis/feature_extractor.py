@@ -90,36 +90,41 @@ class FeatureExtractor:
                 if angle > DIRECTION_CHANGE_ANGLE_THRESHOLD:
                     num_ball_direction_changes += 1
 
-        # 4. min_dist_ball_player & num_frames_ball_close
+        # 4. Ball-Player distance features
         min_dist_ball_player = float('inf')
         num_frames_ball_close = 0
+        all_min_dists = []
         
         for f in frames:
             if f["ball_visible"] and f["ball_x"] is not None:
                 frame_min_dist = float('inf')
                 for p in f["players"]:
-                    # Center of player bounding box
                     px = (p["x1"] + p["x2"]) / 2
                     py = (p["y1"] + p["y2"]) / 2
                     dist = math.sqrt((f["ball_x"] - px)**2 + (f["ball_y"] - py)**2)
-                    if dist < min_dist_ball_player:
-                        min_dist_ball_player = dist
                     if dist < frame_min_dist:
                         frame_min_dist = dist
                 
-                if frame_min_dist < BALL_CLOSE_THRESHOLD:
-                    num_frames_ball_close += 1
+                if frame_min_dist != float('inf'):
+                    all_min_dists.append(frame_min_dist)
+                    if frame_min_dist < min_dist_ball_player:
+                        min_dist_ball_player = frame_min_dist
+                    if frame_min_dist < BALL_CLOSE_THRESHOLD:
+                        num_frames_ball_close += 1
         
+        mean_dist_ball_player = sum(all_min_dists) / len(all_min_dists) if all_min_dists else -1.0
+        std_dist_ball_player = 0.0
+        if len(all_min_dists) > 1:
+            variance = sum((d - mean_dist_ball_player)**2 for d in all_min_dists) / len(all_min_dists)
+            std_dist_ball_player = math.sqrt(variance)
+
         if min_dist_ball_player == float('inf'):
-            min_dist_ball_player = -1.0 # Or some other indicator of "no data"
+            min_dist_ball_player = -1.0
 
         # 5. Player speed features
-        # Assuming players are matched by index in the list for simplicity in this stateless extractor
-        # In a real scenario, we'd need player IDs.
         player_speeds = []
         num_players_moving = 0
         
-        # We'll calculate speed for each player slot across frames
         max_players = max((len(f["players"]) for f in frames), default=0)
         for p_idx in range(max_players):
             p_speeds = []
@@ -148,6 +153,8 @@ class FeatureExtractor:
             "std_ball_speed": std_ball_speed,
             "num_ball_direction_changes": float(num_ball_direction_changes),
             "min_dist_ball_player": min_dist_ball_player,
+            "mean_dist_ball_player": mean_dist_ball_player,
+            "std_dist_ball_player": std_dist_ball_player,
             "num_frames_ball_close": float(num_frames_ball_close),
             "mean_player_speed": mean_player_speed,
             "num_players_moving": float(num_players_moving)

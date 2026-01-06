@@ -109,6 +109,11 @@ def main() -> None:
     ticks_df.to_parquet(args.output)
     print(f"Success! Saved {len(ticks_df)} ticks to {args.output}")
 
+    # Also save raw detections for future re-processing without re-running inference
+    raw_output = args.output.with_suffix(".raw.parquet")
+    detections_df.to_parquet(raw_output)
+    print(f"Saved raw detections to {raw_output}")
+
 
 if __name__ == "__main__":
     main()

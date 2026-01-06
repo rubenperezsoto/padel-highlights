@@ -3,6 +3,8 @@ from typing import List, Dict, Tuple
 import pandas as pd
 import numpy as np
 
+from src.padel.analysis.serve_detector import ServeFormationDetector
+
 class PointDetector:
     """
     Detects rally intervals from model probabilities using temporal smoothing.
@@ -14,7 +16,8 @@ class PointDetector:
         min_gap_seconds: float = 3.0,
         smoothing_window_seconds: float = 1.5,
         buffer_seconds: float = 1.5,
-        net_y: float | None = None
+        net_y: float | None = None,
+        serve_detector: ServeFormationDetector | None = None
     ):
         self.threshold = threshold
         self.min_duration_seconds = min_duration_seconds
@@ -22,6 +25,7 @@ class PointDetector:
         self.smoothing_window_seconds = smoothing_window_seconds
         self.buffer_seconds = buffer_seconds
         self.net_y = net_y
+        self.serve_detector = serve_detector
 
     def detect(self, df: pd.DataFrame) -> List[Dict[str, float]]:
         """
@@ -80,8 +84,15 @@ class PointDetector:
             # 7. Net Crossing Heuristic & Trimming
             if self.net_y is not None:
                 crossings_info = self._get_crossings_info(df, interval)
-                if crossings_info["count"] < 2:
-                    continue # Skip if ball doesn't cross the net at least twice
+                
+                # Contextual Heuristic:
+                # If we detected a serve formation before the point, we allow 1 crossing (Ace/Return Error)
+                min_crossings = 2
+                if self.serve_detector and crossings_info["is_serve"]:
+                    min_crossings = 1
+                
+                if crossings_info["count"] < min_crossings:
+                    continue # Skip if not enough crossings
                 
                 # Trim end to last crossing + a small extra buffer
                 # This prevents long "walking" segments at the end of a point
@@ -98,19 +109,31 @@ class PointDetector:
 
     def _get_crossings_info(self, df: pd.DataFrame, interval: Dict[str, float]) -> Dict[str, Any]:
         """
-        Analyzes net crossings during the interval.
-        Returns count and timestamp of the last crossing.
+        Analyzes net crossings during the interval and checks for serve formation before it.
+        Returns count, timestamp of the last crossing, and is_serve boolean.
         """
+        # Check for serve formation in the 2 seconds BEFORE the interval starts
+        is_serve = False
+        if self.serve_detector:
+            pre_start = max(0, interval["start"] - 2.0)
+            pre_mask = (df["timestamp"] >= pre_start) & (df["timestamp"] < interval["start"])
+            pre_subset = df[pre_mask]
+            
+            # Convert subset to list of dicts for the detector
+            if not pre_subset.empty and "players" in pre_subset.columns:
+                frames = pre_subset.to_dict("records")
+                is_serve = self.serve_detector.is_serve_formation(frames)
+
         mask = (df["timestamp"] >= interval["start"]) & (df["timestamp"] <= interval["end"])
         subset = df[mask]
         
         if subset.empty or "ball_y" not in subset.columns:
-            return {"count": 2, "last_ts": interval["end"]} # Assume valid if no data
+            return {"count": 2, "last_ts": interval["end"], "is_serve": is_serve} # Assume valid if no data
             
         # Filter only frames where ball is visible
         visible_ball = subset[subset["ball_visible"] == True]
         if len(visible_ball) < 5:
-            return {"count": 2, "last_ts": interval["end"]}
+            return {"count": 2, "last_ts": interval["end"], "is_serve": is_serve}
             
         # Count crossings
         sides = (visible_ball["ball_y"] > self.net_y).astype(int)
@@ -121,4 +144,4 @@ class PointDetector:
         if crossings_count > 0:
             last_ts = visible_ball[cross_mask]["timestamp"].max()
             
-        return {"count": crossings_count, "last_ts": last_ts}
+        return {"count": crossings_count, "last_ts": last_ts, "is_serve": is_serve}

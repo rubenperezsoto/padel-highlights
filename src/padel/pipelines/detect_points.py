@@ -1,6 +1,7 @@
 import argparse
 import json
 from pathlib import Path
+import cv2
 import pandas as pd
 import joblib
 from src.padel.analysis.point_detector import PointDetector
@@ -55,13 +56,30 @@ def main():
     
     # 3. Detect points
     print("Detecting points...")
+    
+    # Convert normalized net_y to absolute pixels if it exists
+    absolute_net_y = None
+    serve_detector = None
+    
+    if net_y is not None:
+        cap = cv2.VideoCapture(str(args.video))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        cap.release()
+        absolute_net_y = net_y * height
+        print(f"Absolute net line at y={absolute_net_y:.1f} pixels")
+        
+        # Initialize ServeFormationDetector with absolute net_y
+        from src.padel.analysis.serve_detector import ServeFormationDetector
+        serve_detector = ServeFormationDetector(net_y=absolute_net_y)
+
     detector = PointDetector(
         threshold=args.threshold,
         min_duration_seconds=args.min_duration,
         min_gap_seconds=args.min_gap,
         smoothing_window_seconds=args.smoothing,
         buffer_seconds=args.buffer,
-        net_y=net_y
+        net_y=absolute_net_y,
+        serve_detector=serve_detector
     )
     intervals = detector.detect(df)
     
