@@ -91,6 +91,8 @@ class TickProcessor:
             # Build tick row
             row = {
                 "timestamp": ts,
+                "ball_y": window_df.iloc[len(window_df)//2]["ball_y"] if "ball_y" in window_df.columns else None,
+                "ball_visible": window_df.iloc[len(window_df)//2]["ball_visible"] if "ball_visible" in window_df.columns else False,
                 **features
             }
             

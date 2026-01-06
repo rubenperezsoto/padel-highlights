@@ -1,2 +1,0 @@
-OpenCV version: 4.12.0
-Read frame: (1080, 1920, 3)

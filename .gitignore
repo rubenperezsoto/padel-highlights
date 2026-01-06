@@ -1,16 +1,25 @@
-# env related
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
 .venv/
-*.env
-
-# logs caches, etc
-external/*
+venv/
+ENV/
+.env
 *.log
 *.cache
-__pycache__/
+
+# Data & Models
+data/
+!data/.gitkeep
+weights/*.pt
+weights/*.joblib
+external/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
 .DS_Store
 archive/
-
-# files
-*.mp4
-data/*.parquet
-data/*.joblib
