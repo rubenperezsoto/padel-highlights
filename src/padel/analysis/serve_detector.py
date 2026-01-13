@@ -7,18 +7,17 @@ class ServeFormationDetector:
     """
     Detects if players are in a "Serve Formation" based on their positions.
     """
-    def __init__(self, net_y: float = 0.5, movement_threshold: float = 0.01):
+    def __init__(self, net_y: float = 0.5, movement_threshold: float = 0.05):
         self.net_y = net_y
         self.movement_threshold = movement_threshold # Max movement (normalized) to be considered static
 
-    def is_serve_formation(self, frames: List[Dict[str, Any]]) -> bool:
+    def is_serve_formation(self, frames: List[Dict[str, Any]], height: float = 720.0) -> bool:
         """
         Analyzes a window of frames (e.g., 1 second) to check for static serve positions.
         
         Args:
             frames: List of frame data dictionaries, each containing 'players' list.
-                    Each player dict should have 'x1', 'y1', 'x2', 'y2' (normalized or absolute).
-                    If absolute, ensure net_y is also absolute.
+            height: Image height for normalization.
         """
         if not frames:
             return False
@@ -62,7 +61,7 @@ class ServeFormationDetector:
             c1x, c1y = (p1["x1"] + p1["x2"]) / 2, (p1["y1"] + p1["y2"]) / 2
             c2x, c2y = (p2["x1"] + p2["x2"]) / 2, (p2["y1"] + p2["y2"]) / 2
             dist = np.sqrt((c2x - c1x)**2 + (c2y - c1y)**2)
-            max_movement = max(max_movement, dist)
+            max_movement = max(max_movement, dist / height) # Normalize
 
         if max_movement > self.movement_threshold:
             return False # Players are moving too much

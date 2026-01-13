@@ -60,17 +60,20 @@ def main():
     # Convert normalized net_y to absolute pixels if it exists
     absolute_net_y = None
     serve_detector = None
+    height = 720.0 # Default
     
-    if net_y is not None:
+    if args.video and args.video.exists():
         cap = cv2.VideoCapture(str(args.video))
-        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        height = float(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         cap.release()
-        absolute_net_y = net_y * height
-        print(f"Absolute net line at y={absolute_net_y:.1f} pixels")
         
-        # Initialize ServeFormationDetector with absolute net_y
-        from src.padel.analysis.serve_detector import ServeFormationDetector
-        serve_detector = ServeFormationDetector(net_y=absolute_net_y)
+        if net_y is not None:
+            absolute_net_y = net_y * height
+            print(f"Absolute net line at y={absolute_net_y:.1f} pixels")
+            
+            # Initialize ServeFormationDetector with absolute net_y
+            from src.padel.analysis.serve_detector import ServeFormationDetector
+            serve_detector = ServeFormationDetector(net_y=absolute_net_y)
 
     detector = PointDetector(
         threshold=args.threshold,
@@ -79,7 +82,8 @@ def main():
         smoothing_window_seconds=args.smoothing,
         buffer_seconds=args.buffer,
         net_y=absolute_net_y,
-        serve_detector=serve_detector
+        serve_detector=serve_detector,
+        height=height
     )
     intervals = detector.detect(df)
     

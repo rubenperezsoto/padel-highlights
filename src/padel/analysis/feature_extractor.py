@@ -4,10 +4,10 @@ import math
 from typing import Any, Dict, List, Optional, Protocol
 
 
-# Thresholds and Constants
-BALL_CLOSE_THRESHOLD = 50.0  # Pixels
-BALL_SPEED_THRESHOLD = 5.0   # Pixels per frame
-PLAYER_SPEED_THRESHOLD = 2.0 # Pixels per frame
+# Thresholds and Constants (Relative to image height)
+BALL_CLOSE_THRESHOLD_REL = 0.07  # ~50px at 720p
+BALL_SPEED_THRESHOLD_REL = 0.007 # ~5px at 720p
+PLAYER_SPEED_THRESHOLD_REL = 0.003 # ~2px at 720p
 DIRECTION_CHANGE_ANGLE_THRESHOLD = 45.0 # Degrees
 
 
@@ -96,9 +96,6 @@ class FeatureExtractor:
         num_frames_ball_close = 0
         all_min_dists = []
         
-        # Normalize threshold
-        normalized_ball_close_threshold = BALL_CLOSE_THRESHOLD / height
-
         for f in frames:
             if f["ball_visible"] and f["ball_x"] is not None:
                 frame_min_dist = float('inf')
@@ -114,7 +111,7 @@ class FeatureExtractor:
                     all_min_dists.append(norm_dist)
                     if norm_dist < min_dist_ball_player:
                         min_dist_ball_player = norm_dist
-                    if norm_dist < normalized_ball_close_threshold:
+                    if norm_dist < BALL_CLOSE_THRESHOLD_REL:
                         num_frames_ball_close += 1
         
         mean_dist_ball_player = sum(all_min_dists) / len(all_min_dists) if all_min_dists else -1.0
@@ -130,9 +127,6 @@ class FeatureExtractor:
         player_speeds = []
         num_players_moving = 0
         
-        # Normalize threshold
-        normalized_player_speed_threshold = PLAYER_SPEED_THRESHOLD / height
-
         max_players = max((len(f["players"]) for f in frames), default=0)
         for p_idx in range(max_players):
             p_speeds = []
@@ -150,7 +144,7 @@ class FeatureExtractor:
             if p_speeds:
                 avg_p_speed = sum(p_speeds) / len(p_speeds)
                 player_speeds.append(avg_p_speed)
-                if avg_p_speed > normalized_player_speed_threshold:
+                if avg_p_speed > PLAYER_SPEED_THRESHOLD_REL:
                     num_players_moving += 1
 
         mean_player_speed = sum(player_speeds) / len(player_speeds) if player_speeds else 0.0

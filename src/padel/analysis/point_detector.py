@@ -17,7 +17,8 @@ class PointDetector:
         smoothing_window_seconds: float = 1.5,
         buffer_seconds: float = 1.5,
         net_y: float | None = None,
-        serve_detector: ServeFormationDetector | None = None
+        serve_detector: ServeFormationDetector | None = None,
+        height: float = 720.0
     ):
         self.threshold = threshold
         self.min_duration_seconds = min_duration_seconds
@@ -26,6 +27,7 @@ class PointDetector:
         self.buffer_seconds = buffer_seconds
         self.net_y = net_y
         self.serve_detector = serve_detector
+        self.height = height
 
     def detect(self, df: pd.DataFrame) -> List[Dict[str, float]]:
         """
@@ -122,7 +124,7 @@ class PointDetector:
             # Convert subset to list of dicts for the detector
             if not pre_subset.empty and "players" in pre_subset.columns:
                 frames = pre_subset.to_dict("records")
-                is_serve = self.serve_detector.is_serve_formation(frames)
+                is_serve = self.serve_detector.is_serve_formation(frames, height=self.height)
 
         mask = (df["timestamp"] >= interval["start"]) & (df["timestamp"] <= interval["end"])
         subset = df[mask]
