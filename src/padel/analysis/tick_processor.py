@@ -53,7 +53,7 @@ class TickProcessor:
                 return 1
         return 0
 
-    def process(self) -> pd.DataFrame:
+    def process(self, height: float = 720.0) -> pd.DataFrame:
         """
         Processes the detections into ticks and extracts features.
         Returns a DataFrame where each row is a tick.
@@ -86,7 +86,7 @@ class TickProcessor:
             window_frames = window_df.to_dict("records")
             
             # Extract features
-            features = FeatureExtractor.compute_features(window_frames)
+            features = FeatureExtractor.compute_features(window_frames, height=height)
             
             # Build tick row
             row = {

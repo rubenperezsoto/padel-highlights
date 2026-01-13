@@ -101,7 +101,7 @@ def main() -> None:
     processor = TickProcessor(tick_frequency=args.tick_freq, window_size_seconds=1.5)
     processor.load_detections(detections_df)
     
-    ticks_df = processor.process()
+    ticks_df = processor.process(height=height)
     
     # Ensure output directory exists
     args.output.parent.mkdir(parents=True, exist_ok=True)

@@ -26,9 +26,10 @@ class FeatureExtractor:
     """
 
     @staticmethod
-    def compute_features(window_frames: List[FrameDetection | Dict[str, Any]]) -> Dict[str, float]:
+    def compute_features(window_frames: List[FrameDetection | Dict[str, Any]], height: float = 720.0) -> Dict[str, float]:
         """
         Computes features for a given window of frames.
+        Normalizes pixel-based features by the image height to be resolution-independent.
         """
         if not window_frames:
             return {}
@@ -64,8 +65,8 @@ class FeatureExtractor:
                 dx = f2["ball_x"] - f1["ball_x"]
                 dy = f2["ball_y"] - f1["ball_y"]
                 dist = math.sqrt(dx**2 + dy**2)
-                ball_speeds.append(dist)
-                ball_velocities.append((dx, dy))
+                ball_speeds.append(dist / height) # Normalize
+                ball_velocities.append((dx / height, dy / height)) # Normalize
 
         mean_ball_speed = sum(ball_speeds) / len(ball_speeds) if ball_speeds else 0.0
         
@@ -95,6 +96,9 @@ class FeatureExtractor:
         num_frames_ball_close = 0
         all_min_dists = []
         
+        # Normalize threshold
+        normalized_ball_close_threshold = BALL_CLOSE_THRESHOLD / height
+
         for f in frames:
             if f["ball_visible"] and f["ball_x"] is not None:
                 frame_min_dist = float('inf')
@@ -106,10 +110,11 @@ class FeatureExtractor:
                         frame_min_dist = dist
                 
                 if frame_min_dist != float('inf'):
-                    all_min_dists.append(frame_min_dist)
-                    if frame_min_dist < min_dist_ball_player:
-                        min_dist_ball_player = frame_min_dist
-                    if frame_min_dist < BALL_CLOSE_THRESHOLD:
+                    norm_dist = frame_min_dist / height
+                    all_min_dists.append(norm_dist)
+                    if norm_dist < min_dist_ball_player:
+                        min_dist_ball_player = norm_dist
+                    if norm_dist < normalized_ball_close_threshold:
                         num_frames_ball_close += 1
         
         mean_dist_ball_player = sum(all_min_dists) / len(all_min_dists) if all_min_dists else -1.0
@@ -125,6 +130,9 @@ class FeatureExtractor:
         player_speeds = []
         num_players_moving = 0
         
+        # Normalize threshold
+        normalized_player_speed_threshold = PLAYER_SPEED_THRESHOLD / height
+
         max_players = max((len(f["players"]) for f in frames), default=0)
         for p_idx in range(max_players):
             p_speeds = []
@@ -137,12 +145,12 @@ class FeatureExtractor:
                     c2x, c2y = (p2["x1"] + p2["x2"]) / 2, (p2["y1"] + p2["y2"]) / 2
                     
                     dist = math.sqrt((c2x - c1x)**2 + (c2y - c1y)**2)
-                    p_speeds.append(dist)
+                    p_speeds.append(dist / height) # Normalize
             
             if p_speeds:
                 avg_p_speed = sum(p_speeds) / len(p_speeds)
                 player_speeds.append(avg_p_speed)
-                if avg_p_speed > PLAYER_SPEED_THRESHOLD:
+                if avg_p_speed > normalized_player_speed_threshold:
                     num_players_moving += 1
 
         mean_player_speed = sum(player_speeds) / len(player_speeds) if player_speeds else 0.0
