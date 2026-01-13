@@ -19,6 +19,7 @@ def main():
     parser.add_argument("--smoothing", type=float, default=1.5, help="Smoothing window in seconds")
     parser.add_argument("--buffer", type=float, default=1.5, help="Buffer seconds to add before/after each point")
     parser.add_argument("--use-net-heuristic", action="store_true", help="Filter rallies that don't cross the net")
+    parser.add_argument("--min-crossings", type=int, default=2, help="Minimum net crossings for a valid rally")
     
     args = parser.parse_args()
     
@@ -83,7 +84,8 @@ def main():
         buffer_seconds=args.buffer,
         net_y=absolute_net_y,
         serve_detector=serve_detector,
-        height=height
+        height=height,
+        min_crossings=args.min_crossings
     )
     intervals = detector.detect(df)
     

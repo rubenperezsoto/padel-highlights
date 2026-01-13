@@ -18,7 +18,8 @@ class PointDetector:
         buffer_seconds: float = 1.5,
         net_y: float | None = None,
         serve_detector: ServeFormationDetector | None = None,
-        height: float = 720.0
+        height: float = 720.0,
+        min_crossings: int = 2
     ):
         self.threshold = threshold
         self.min_duration_seconds = min_duration_seconds
@@ -28,6 +29,7 @@ class PointDetector:
         self.net_y = net_y
         self.serve_detector = serve_detector
         self.height = height
+        self.min_crossings = min_crossings
 
     def detect(self, df: pd.DataFrame) -> List[Dict[str, float]]:
         """
@@ -89,7 +91,7 @@ class PointDetector:
                 
                 # Contextual Heuristic:
                 # If we detected a serve formation before the point, we allow 1 crossing (Ace/Return Error)
-                min_crossings = 2
+                min_crossings = self.min_crossings
                 if self.serve_detector and crossings_info["is_serve"]:
                     min_crossings = 1
                 
